@@ -1,0 +1,25 @@
+{
+  "input_dirs": {
+    "A": "C:/Users/LENOVO/Desktop/MajorProject/archive/training_setA",
+    "B": "C:/Users/LENOVO/Desktop/MajorProject/archive/training_setB"
+  },
+  "output_dir": "processed_data",
+  "reports_dir": "reports",
+  "storage_format": "auto",
+  "expected_counts": {"A": 20643, "B": 20000},
+  "seed": 42,
+  "split_ratios": {"train": 0.7, "validation": 0.15, "test": 0.15},
+  "inspection_samples_per_dataset": 7,
+  "rolling_windows": [3, 6, 12],
+  "rolling_features": ["HR", "O2Sat", "Temp", "SBP", "MAP", "Resp"],
+  "forward_fill_features": ["HR", "O2Sat", "Temp", "SBP", "MAP", "DBP", "Resp"],
+  "forward_fill_limit_hours": 3,
+  "batch_size": 128,
+  "max_batch_rows": 20000,
+  "max_patient_rows": 10000,
+  "max_file_bytes": 20000000,
+  "num_workers": 1,
+  "compression": "zstd",
+  "progress_every": 1000,
+  "validation_batch_rows": 8192
+}

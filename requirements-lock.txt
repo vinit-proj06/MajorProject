@@ -1,0 +1,6 @@
+# Versions used for the verified local run. PyArrow is installed but blocked by
+# Windows Application Control here; storage_format=auto selects compressed CSV.
+pandas==3.0.1
+numpy==2.3.5
+pyarrow==25.0.1
+tqdm==4.70.1

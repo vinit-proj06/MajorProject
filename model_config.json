@@ -1,0 +1,33 @@
+{
+  "processed_dir": "processed_data",
+  "cache_dir": "model_cache",
+  "models_dir": "models",
+  "reports_dir": "reports/models",
+  "seed": 42,
+  "n_jobs": 2,
+  "batch_rows": 8192,
+  "calibration_bins": 10,
+  "threshold_rule": "validation_max_f1",
+  "class_weight": "balanced",
+  "random_forest": {
+    "n_estimators": 160,
+    "trees_per_batch": 20,
+    "max_depth": 14,
+    "max_leaf_nodes": 1024,
+    "min_samples_leaf": 20,
+    "max_features": "sqrt",
+    "max_samples": 200000
+  },
+  "xgboost": {
+    "num_boost_round": 400,
+    "early_stopping_rounds": 30,
+    "learning_rate": 0.05,
+    "max_depth": 5,
+    "min_child_weight": 10,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 5.0,
+    "max_bin": 128,
+    "log_every": 20
+  }
+}

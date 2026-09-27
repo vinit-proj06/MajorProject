@@ -1,0 +1,15 @@
+{
+  "model_config": "model_config.json",
+  "output_dir": "reports/early_detection",
+  "models": ["xgboost", "random_forest"],
+  "splits": ["validation", "test"],
+  "batch_rows": 8192,
+  "max_patient_rows": 10000,
+  "policy": {
+    "label_shift_hours": 6,
+    "min_lead_hours": 6,
+    "max_lead_hours": 12,
+    "secondary_min_lead_hours": [1, 3, 6],
+    "consecutive_positive_hours": 1
+  }
+}

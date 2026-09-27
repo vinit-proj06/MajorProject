@@ -1,0 +1,11 @@
+{
+  "model_config": "model_config.json",
+  "output_dir": "reports/shap_xgboost",
+  "split": "test",
+  "expected_features": 187,
+  "batch_rows": 4096,
+  "n_jobs": 2,
+  "summary_bins": 160,
+  "patient_id": "p006266",
+  "hour": 22
+}
