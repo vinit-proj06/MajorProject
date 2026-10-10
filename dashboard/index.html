@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>ICU Replay · Sepsis Research</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to replay</a>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="ICU Replay home">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32">
+          <path d="M3 17h6l3-8 6 16 4-12 3 4h4" />
+        </svg></span>
+      <span>SepsiAlert<span class="brand-light"></span><small>SEPSIS RESEARCH WORKSPACE</small></span>
+    </a>
+    <div class="header-context"><span class="status-dot"></span> Simulated patient timeline <span
+        class="header-divider"></span><span class="research-badge">RESEARCH PROTOTYPE</span></div>
+  </header>
+
+
+  <div class="workspace">
+    <aside class="patient-panel" aria-label="Patient selection">
+      <div class="section-eyebrow">EXPLORE A RECORD</div>
+      <h2>Patient library</h2>
+      <p class="muted small">Replay an existing ICU record one hour at a time.</p>
+      <label class="sr-only" for="patient-search">Search patient ID</label>
+      <div class="search-field"><svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="5.5" />
+          <path d="m13 13 4 4" />
+        </svg><input id="patient-search" type="search" placeholder="Search patient ID" autocomplete="off"
+          spellcheck="false"></div>
+      <div id="patient-search-status" class="small muted library-status" role="status">Loading records…</div>
+      <div id="patient-list" class="patient-list" aria-label="Available patients"></div>
+      <div class="library-note"><span class="outline-icon" aria-hidden="true">↳</span>
+        <p>Replay shows only information available through the selected hour.</p>
+      </div>
+    </aside>
+
+    <main id="main" tabindex="-1">
+      <section class="page-heading" aria-label="Current record">
+        <div>
+          <div class="section-eyebrow">PATIENT REPLAY</div>
+          <h1 id="patient-title">Loading patient…</h1>
+          <p id="patient-context" class="muted">Connecting to the local research workspace</p>
+        </div>
+        <div class="model-control"><label for="model-select">Research model</label><select id="model-select" disabled>
+            <option value="baseline">Loading models…</option>
+          </select><span id="model-details" class="small muted">Frozen model · uncalibrated score</span></div>
+      </section>
+
+      <div id="error-panel" class="error-panel" role="alert" hidden>
+        <div><strong id="error-title">Unable to load this record</strong>
+          <p id="error-message"></p>
+        </div><button id="retry-button" class="button button-secondary" type="button">Try again</button>
+      </div>
+
+      <section class="replay-toolbar card" aria-label="Replay controls">
+        <div class="replay-controls"><button id="reset-button" class="icon-button" type="button"
+            title="Reset to the first recorded hour" aria-label="Reset replay" disabled>↺</button><button
+            id="play-button" class="button button-primary" type="button" disabled><span id="play-icon"
+              aria-hidden="true">▶</span><span id="play-text">Play</span></button><button id="next-button"
+            class="button button-secondary" type="button" disabled>Next hour <span aria-hidden="true">→</span></button>
+        </div>
+        <div class="hour-control">
+          <div class="hour-label"><label for="hour-range">ICU hour <strong id="selected-hour">—</strong></label><span
+              id="replay-bounds" class="small muted">—</span></div><input id="hour-range" type="range" min="1" max="1"
+            value="1" step="1" disabled aria-label="Selected ICU hour">
+        </div>
+        <div class="pace-control"><label for="speed-select">Playback pace</label><select id="speed-select">
+            <option value="2000">1 hour / 2 sec</option>
+            <option value="1000" selected>1 hour / 1 sec</option>
+            <option value="500">1 hour / 0.5 sec</option>
+          </select></div>
+      </section>
+      <div class="replay-status"><span id="load-status" role="status" aria-live="polite">Preparing the first recorded
+          hour…</span><span class="prefix-badge" id="prefix-badge">PAST + CURRENT HOUR ONLY</span></div>
+
+      <div id="replay-content" class="replay-content" aria-busy="true">
+        <section class="overview-grid" aria-label="Model score and measurements">
+          <article class="card score-card">
+            <div class="card-heading">
+              <div class="section-eyebrow">UNCALIBRATED MODEL SCORE</div><span id="alert-status"
+                class="pill pill-neutral">Waiting</span>
+            </div>
+            <div class="score-value"><span id="model-score">—</span><span class="score-scale">/ 1.000</span></div>
+            <div class="score-meter" aria-hidden="true">
+              <div id="score-meter-fill"></div><span id="threshold-marker"></span>
+            </div>
+            <div class="threshold-description"><span>Frozen threshold</span><strong id="model-threshold">—</strong>
+            </div>
+            <p id="score-description" class="small muted">A model score describes this model’s output. It is not a
+              calibrated probability of sepsis.</p>
+          </article>
+          <article class="card score-history-card">
+            <div class="card-heading">
+              <div>
+                <h2>Score over time</h2>
+                <p class="small muted">Through the selected hour</p>
+              </div>
+              <div class="chart-legend"><span><i class="legend-line teal"></i>Score</span><span><i
+                    class="legend-line dashed"></i>Threshold</span></div>
+            </div>
+            <div id="score-chart" class="chart-container" aria-label="Historical model scores">
+              <div class="chart-empty">The score timeline will appear here.</div>
+            </div>
+          </article>
+        </section>
+
+        <section class="vitals-section" aria-labelledby="vitals-heading">
+          <div class="section-title">
+            <div>
+              <h2 id="vitals-heading">Current vital signs</h2>
+              <p class="small muted">Raw measurements recorded at this hour</p>
+            </div><span id="freshness-badge" class="pill pill-neutral">— measured</span>
+          </div>
+          <div id="vital-cards" class="vital-grid"></div>
+        </section>
+
+        <section class="detail-grid">
+          <article class="card vital-history-card">
+            <div class="card-heading">
+              <div>
+                <h2>Measurement history</h2>
+                <p class="small muted">Gaps indicate an unrecorded measurement</p>
+              </div><label class="sr-only" for="vital-select">Vital sign to chart</label><select id="vital-select"
+                class="compact-select">
+                <option value="HR">Heart rate</option>
+                <option value="Resp">Respiratory rate</option>
+                <option value="Temp">Temperature</option>
+                <option value="O2Sat">Oxygen saturation</option>
+                <option value="SBP">Systolic pressure</option>
+                <option value="MAP">Mean arterial pressure</option>
+                <option value="DBP">Diastolic pressure</option>
+                <option value="EtCO2">End-tidal CO₂</option>
+              </select>
+            </div>
+            <div id="vital-chart" class="chart-container chart-tall">
+              <div class="chart-empty">Select a patient to explore measurements.</div>
+            </div>
+          </article>
+          <article class="card alert-card">
+            <div class="card-heading">
+              <div>
+                <h2>Alert history</h2>
+                <p class="small muted">Model score at or above its frozen threshold</p>
+              </div><span id="alert-count" class="count-badge">0</span>
+            </div>
+            <div id="alert-history" class="alert-history">
+              <div class="empty-state"><span aria-hidden="true">◌</span>
+                <p>No replay hours loaded yet.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="card explanation-card" aria-labelledby="explanation-heading">
+          <div class="card-heading">
+            <div>
+              <div class="section-eyebrow">WHY THIS SCORE?</div>
+              <h2 id="explanation-heading">Current-hour feature contributions</h2>
+              <p class="small muted">Largest contributions in each direction; every feature is available below.</p>
+            </div><span class="pill pill-neutral">SHAP · RAW LOG-ODDS</span>
+          </div>
+          <div class="shap-grid">
+            <div>
+              <h3><span class="direction-dot negative"></span>Lower the model score</h3>
+              <div id="shap-negative" class="shap-bars">
+                <p class="small muted">Waiting for an explanation…</p>
+              </div>
+            </div>
+            <div>
+              <h3><span class="direction-dot positive"></span>Raise the model score</h3>
+              <div id="shap-positive" class="shap-bars">
+                <p class="small muted">Waiting for an explanation…</p>
+              </div>
+            </div>
+          </div>
+          <div class="shap-equation"><span>Model baseline <strong id="shap-base">—</strong></span><span
+              aria-hidden="true">+</span><span>All feature contributions <strong id="shap-total">—</strong></span><span
+              aria-hidden="true">=</span><span>Raw model output <strong id="shap-margin">—</strong></span></div>
+          <p class="small muted explanation-note">Contributions explain model associations, not causes. Values are in
+            log-odds, not changes in probability.</p>
+          <details id="all-features-details" class="all-features">
+            <summary><span id="all-features-label">View every feature contribution</span></summary>
+            <div class="table-controls"><label class="sr-only" for="feature-search">Filter feature
+                contributions</label><input id="feature-search" type="search" placeholder="Find a feature"
+                autocomplete="off"><button id="download-shap" class="button button-secondary small-button" type="button"
+                disabled>Download all contributions ↓</button></div>
+            <div class="table-scroll">
+              <table>
+                <caption class="sr-only">All current-hour feature contributions, ordered by absolute SHAP value
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Feature</th>
+                    <th scope="col" class="numeric">Model input</th>
+                    <th scope="col" class="numeric">SHAP value</th>
+                    <th scope="col">Direction</th>
+                  </tr>
+                </thead>
+                <tbody id="feature-table"></tbody>
+              </table>
+            </div>
+            <p id="feature-filter-status" class="small muted"></p>
+          </details>
+        </section>
+
+        <section class="card measurements-card" aria-labelledby="measurements-heading">
+          <div class="card-heading">
+            <div>
+              <h2 id="measurements-heading">Measurements &amp; model inputs</h2>
+              <p class="small muted">Distinguish recorded values from values carried forward or filled using training
+                data.</p>
+            </div><label class="sr-only" for="measurement-filter">Filter measurements</label><select
+              id="measurement-filter" class="compact-select">
+              <option value="all">All measurements</option>
+              <option value="vitals">Vital signs</option>
+              <option value="labs">Laboratory values</option>
+              <option value="missing">Not measured this hour</option>
+            </select>
+          </div>
+          <div class="table-scroll measurements-scroll">
+            <table>
+              <caption class="sr-only">Raw measurements, model inputs, and their provenance</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Measurement</th>
+                  <th scope="col" class="numeric">Recorded this hour</th>
+                  <th scope="col" class="numeric">Model input</th>
+                  <th scope="col">Source of model value</th>
+                  <th scope="col">Last observed</th>
+                </tr>
+              </thead>
+              <tbody id="measurement-table">
+                <tr>
+                  <td colspan="5" class="table-empty">Measurements will appear after the record loads.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="small muted table-footnote">A dash means no raw measurement was recorded at this hour. Filled values
+            are never presented as current measurements.</p>
+        </section>
+
+        <section class="review-gate">
+          <div>
+            <div class="section-eyebrow">SEPARATE RETROSPECTIVE REVIEW</div>
+            <h2>Compare the replay with recorded outcomes</h2>
+            <p class="small muted">Revealing the outcome opens the full record, including information after the selected
+              hour.</p>
+          </div><button id="reveal-review" class="button button-secondary" type="button" disabled>Reveal retrospective
+            outcome <span aria-hidden="true">↗</span></button>
+        </section>
+        <section id="review-panel" class="card retrospective-panel" aria-labelledby="review-heading" hidden>
+          <div class="card-heading">
+            <div><span class="pill pill-review">FULL RECORD · RETROSPECTIVE REVIEW</span>
+              <h2 id="review-heading">Recorded outcome and warning timing</h2>
+            </div><button id="close-review" class="icon-button" aria-label="Close retrospective outcome review"
+              type="button">×</button>
+          </div>
+          <p class="review-warning">This section includes future labels and the complete timeline. It is separate from
+            the hour-by-hour replay.</p>
+          <div id="review-summary" class="review-metrics"></div>
+          <div id="review-chart" class="chart-container chart-tall"></div>
+          <p id="review-note" class="small muted"></p>
+        </section>
+      </div>
+      <footer class="page-footer"><span>PhysioNet / CinC 2019 · Research data</span><span>Simulated ICU replay · No
+          treatment recommendations</span></footer>
+    </main>
+  </div>
+</body>
+
+</html>
