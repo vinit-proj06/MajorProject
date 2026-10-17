@@ -1,137 +1,90 @@
-# Sepsis research preprocessing
+# SepsiAlert: Sepsis Prediction and ICU Patient Replay
 
-A reproducible, patient-wise preprocessing pipeline for PhysioNet/CinC 2019 hourly ICU records, with separate research training/evaluation scripts for XGBoost and Random Forest. See [MODEL_TRAINING.md](MODEL_TRAINING.md) for model commands, metrics and calibration reports. This project does not make a diagnosis, establish clinical safety, or implement the clinical-alerting stage in the supplied diagram.
+SepsiAlert is a research project that uses hourly ICU records to study sepsis prediction and early warning. It includes patient-wise preprocessing, XGBoost and Random Forest models, model evaluation, SHAP explanations, and a local dashboard for replaying recorded patients.
 
-Patient-level early warning evaluation is available through `evaluate_early_detection.py`. See [EARLY_DETECTION.md](EARLY_DETECTION.md) for the 6–12 hour detection rate, onset timing, false-alarm burden, and how to open the reports.
+The saved dataset contains **40,336 patients**, **1,552,210 hourly records**, and **187 model features**. Patients are separated into training, validation, and test sets. The dashboard uses saved XGBoost models, including the timing-feature experiments.
 
-Full-test XGBoost feature explanations are available through `explain_xgboost.py`. See [SHAP_EXPLAINABILITY.md](SHAP_EXPLAINABILITY.md) for the complete 187-feature ranking and individual prediction explanations using the saved model.
+## Run the dashboard
 
-Controlled timing-feature ablations are available through `run_timing_ablation.py`. See [ABLATION_EXPERIMENTS.md](ABLATION_EXPERIMENTS.md) for the A/B/C exclusions, first-run and resume commands, unchanged training protocol, comparison outputs, and full 184-feature SHAP ranking for experiment C. These follow-up comparisons are exploratory; the original baseline is preserved.
+Open this project folder in VS Code and run this command in PowerShell:
 
-## Local data and inspection
-
-`config.json` points to the existing folders on this computer:
-
-```text
-C:/Users/LENOVO/Desktop/MajorProject/archive/training_setA/
-C:/Users/LENOVO/Desktop/MajorProject/archive/training_setB/
+```powershell
+.\.venv\Scripts\python.exe -B run_dashboard.py
 ```
 
-Discovery is recursive because these folders contain a second training-set directory. Source files are read only. Copying or renaming patients is unnecessary. On another machine, change `input_dirs`; all relative paths in the configuration resolve relative to the configuration file, not the terminal's working directory.
+Open [http://127.0.0.1:8765](http://127.0.0.1:8765) and keep the terminal running. Stop the server with **Ctrl+C**. For a different port, add `--port 8766` to the command. Existing saved models are sufficient for the demonstration; training is a separate step.
 
-The initial local inspection found **20,336 A files + 20,000 B files = 40,336**, which is **307 fewer** than the requested expected count of 40,643. Filename gaps alone do not establish that this is an invalid dataset release. Expected counts are configurable and discrepancies are reported rather than silently accepted.
+The dashboard needs the saved `models/`, `processed_data/`, `model_cache/`, and model results in `reports/`, plus the original patient files. The current configuration and saved patient manifest refer to:
 
-Fourteen representative files share **41 columns**, including 40 predictors and `SepsisLabel`. The saved inspection samples contain 19–54 hourly rows; `ICULOS` sometimes starts above 1 and is retained unchanged. Labs are frequently absent, and missingness differs by source. `reports/inspection.json` records the selected files, actual headers, row counts, labels and per-file missingness. Full ingestion validates every file against the observed modal representative schema; it does not silently union inconsistent headers.
+```text
+archive/training_setA/
+archive/training_setB/
+```
 
-## Installation and commands
+These paths are relative to the project folder. Include the complete `archive/` folder when sharing a folder ZIP, preserving the nested training-set directories. The saved patient manifest uses the same relative paths. Raw data remains Git-ignored, so a Git-only archive will not include it. See the [dashboard guide](docs/DASHBOARD.md) for the presentation walkthrough and data requirements.
 
-The completed local run processed all **40,336 patients / 1,552,210 hourly rows**, with **zero failures**, in **32.25 minutes**. It retained 2,932 positive patients and 27,916 positive hourly labels. Patient counts are 28,235 train, 6,051 validation and 6,050 test. All final checks and 23 regression tests passed. Detailed statistics are in `reports/dataset_statistics.json`; actual output paths and buffer maxima are in `processed_data/pipeline_manifest.json`.
+## Project structure
 
-With a regular Python 3.11+ installation:
+```text
+MajorProjectCopy/
+  archive/                     Raw patient records (training_setA and training_setB)
+  dashboard/                   HTML, CSS and JavaScript interface
+  src/                         Preprocessing, model and replay logic
+  scripts/                     Training, evaluation and experiment commands
+  models/                      Saved models, thresholds and feature lists
+  processed_data/              Processed splits and dataset metadata
+  model_cache/                 Disk-backed model inputs used by replay and training
+  reports/                     Evaluation results, figures and validation records
+  tests/                       Regression tests
+  docs/                        Detailed methodology and usage guides
+  requirements/                Dependency lists and recorded package versions
+  config.json                  Dataset and preprocessing settings
+  model_config.json            Training and evaluation settings
+  early_detection_config.json  Early-warning evaluation settings
+  shap_config.json             Explanation settings
+  run_dashboard.py             Dashboard entry point
+  run_pipeline.py              Preprocessing entry point
+  requirements.txt             Full-project dependency entry point
+  README.md                    Project overview
+```
+
+## Setup and other commands
+
+The existing `.venv` can be used directly on this computer. For a fresh Python 3.11+ environment:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python src/inspect_dataset.py
-python run_pipeline.py
-python src/dataset_statistics.py
-python -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-The Windows `python` command currently resolves to a Store placeholder on this computer. A working environment has been created in this project using the bundled Python runtime. Use these commands directly without activation:
+For preprocessing alone, install `requirements/base.txt`. Run the following commands from the project root when those stages are needed:
 
-```powershell
-.\.venv\Scripts\python.exe src/inspect_dataset.py
-.\.venv\Scripts\python.exe run_pipeline.py
-.\.venv\Scripts\python.exe src/dataset_statistics.py
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-```
+| Task | Command |
+|---|---|
+| Preprocess raw records | `.\.venv\Scripts\python.exe run_pipeline.py` |
+| Train XGBoost | `.\.venv\Scripts\python.exe scripts/train_xgboost.py` |
+| Train Random Forest | `.\.venv\Scripts\python.exe scripts/train_random_forest.py` |
+| Compare saved models | `.\.venv\Scripts\python.exe scripts/compare_models.py` |
+| Evaluate early warnings | `.\.venv\Scripts\python.exe scripts/evaluate_early_detection.py` |
+| Generate SHAP reports | `.\.venv\Scripts\python.exe scripts/explain_xgboost.py` |
+| View timing-experiment options | `.\.venv\Scripts\python.exe scripts/run_timing_ablation.py --help` |
+| Run regression tests | `.\.venv\Scripts\python.exe -m unittest discover -s tests -v` |
 
-The inspection, preprocessing and statistics scripts accept `--config path/to/config.json`. `python src/preprocess.py` is an equivalent pipeline entry point. To rebuild completed outputs, use `python run_pipeline.py --overwrite`; the previous output directory is retained as a uniquely named backup. A failed run remains in an `inprogress-*` sibling directory with `RUN_FAILED.json`, and is never published as a completed output. There is no automatic resume: a rerun starts a fresh, reproducible run. Reports describe the latest attempt; retain them with a previous output if you need a full historical audit.
+Existing outputs are protected by their respective commands. Read the relevant guide before rebuilding data or models.
 
-`python src/dataset_statistics.py --regenerate` recomputes raw descriptive statistics from saved chunks. Without that flag it displays the completed statistics report.
+The saved training cache and experiment manifests record the original workspace paths. Training or evaluation reruns in this copied folder may reject those historical fingerprints; timing-experiment resume also verifies source hashes. Moving scripts does not migrate saved experiment provenance. The dashboard reuses the saved artifacts without rebuilding them.
 
-## Storage and memory
+## Results and scope
 
-`storage_format: "auto"` prefers Parquet. On this computer, Windows Application Control blocks the installed PyArrow filesystem extension. Automatic selection therefore uses **gzip-compressed CSV**, with honest `.csv.gz` filenames. No security setting is changed. Use `"parquet"` to require a working Parquet runtime and fail explicitly if unavailable, or `"csv_gzip"` to select the supported fallback directly. Parquet is generated automatically in an environment with a functioning PyArrow installation. CSV does not retain the compact numerical dtypes; use the feature metadata when loading it for training.
+The saved test reports show XGBoost AUROC **0.8241** and average precision **0.1142**; Random Forest AUROC **0.8083** and average precision **0.1029**. See the [model comparison](reports/models/comparison.txt) and [early-warning comparison](reports/early_detection/comparison.txt) for thresholds, precision, recall, timing definitions, and false alerts.
 
-The default is a single worker, at most **128 patients / 20,000 rows per raw batch**, and the same bound for each output split's writer. Individual patients are bounded by `max_patient_rows` and `max_file_bytes`; batches never split a patient during feature generation. Long or oversized files are quarantined with an explicit error. There is no repeatedly growing DataFrame and no loading of all patient files. Only small path/ID manifests are kept for all patients.
+This is a replay of recorded structured ICU data. Model scores are uncalibrated, hourly labels are strongly imbalanced, and timing-feature comparisons are exploratory. The project does not establish clinical readiness or live hospital integration. A second data modality and independent prospective validation remain future work.
 
-Exact numerical medians use temporary on-disk float64 arrays, partitioning one mapped feature at a time. The OS can cache mapped pages, but no complete dataset matrix is allocated. Statistics scratch space is released after fitting. Processing may hold one raw batch, one patient's engineered features, and up to three bounded output buffers simultaneously. `pipeline_manifest.json` records actual buffer maxima. Validation reads every final output in bounded batches.
+## Documentation
 
-## Processing stages
-
-1. Discover files deterministically and inspect representatives from A and B.
-2. Validate and ingest patient files into bounded raw chunks. Save raw missingness, exact descriptive numerical statistics, patient metadata, and source SHA-256 hashes.
-3. Split **patients**, stratified jointly by source and whether the patient ever has a positive label. Labels are used for stratification only, never as predictors. The fixed seed is 42; largest-remainder allocation approximates 70/15/15. Tiny strata generate warnings and retain a training representative. Row fractions may differ because lengths of stay vary.
-4. Fit raw-observation medians and binary modes **only on training patients**. Save parameters separately from all-patient descriptive statistics.
-5. Engineer each patient's causal hourly features, apply the frozen training parameters, and write the patient's entire sequence to exactly one split.
-6. Read all final outputs and verify patient coverage, split disjointness, row/label counts, original times, binary targets, finite complete predictors and schema. Runtime prefix/future-mutation checks cover representative patients from each source; unit tests exercise randomized missingness and time gaps.
-
-Malformed/unreadable files, inconsistent schemas, invalid target values, non-numeric tokens, infinite values, and invalid/nonconsecutive ICU times are logged and excluded; processing continues. All copies of a duplicate filename-derived patient ID are quarantined, avoiding arbitrary selection. Every successfully admitted file has the same schema. Systemic errors such as a failed output write stop the run visibly; they are not mislabeled as patient corruption. Rare patient-specific feature failures are also quarantined; final manifests are reconciled with exported patients. Raw statistics retain the validated raw cohort, and any difference is explicitly reported.
-
-## Missing values and temporal features
-
-These are transparent research baselines, not validated physiological assumptions:
-
-- Forward-fill **HR, O2Sat, Temp, SBP, MAP, DBP and Resp** from the same patient's past observation for at most **3 hours**. Do not backward-fill, interpolate using future values, or carry a vital indefinitely.
-- Labs, binary unit indicators, demographics and time fields are **not forward-filled**. Remaining missing current measurements use the observed **training median**, or the observed training **mode** for Gender/Unit1/Unit2 (ties select 0). `ICULOS` must be observed and is never imputed.
-- Before a patient's first measurement, there is no patient-derived fill. If a numeric fallback is needed, use only the population training value, with the raw missingness indicator still equal to 1. This is an explicit statistical prior, not a recovered observation. An entirely unobserved training variable and its median-dependent derived features are dropped; its missingness indicator is retained. Validation/test values never rescue a training-empty predictor.
-- Create `__missing` indicators for all **39 non-ICULOS raw predictors**, from raw values before any filling.
-- For **HR, O2Sat, Temp, SBP, MAP and Resp**, create previous-hour value, change from the previous hour, and hours since the last **raw** observation (`-1` means never observed).
-- For those same six variables, create mean, minimum, maximum, population standard deviation and OLS slope per hour over **3, 6 and 12 hours**. The window at time `t` is `(t-window, t]`, including the current hour. Rolling statistics use **actual observations**, excluding synthetic forward-filled values. Standard deviation and slope require two observations.
-- Missing previous/mean/min/max values use the raw source's training median. Undefined delta/std/slope values use a documented zero-change fallback; indicators and recency show missing measurement history. This fallback can bias sparse-history summaries and should be evaluated during model development.
-
-With the observed complete schema, the default produces **187 predictors**: 40 retained current/time variables, 39 missing indicators, 18 previous/change/recency features and 90 rolling summaries. There are **147 generated features**, plus `patient_id`, `dataset`, and the target (190 columns total), unless training-empty features are dropped. `processed_data/feature_metadata.json` lists every feature, its definition, fallback and exact predictor list.
-
-`patient_id`, `dataset`, and `SepsisLabel` are excluded from the predictor list. Dataset origin remains available for source-specific auditing; including it as a model input would require a separate generalization assessment. No patient length, eventual sepsis status, onset time, split ID, or future measurement is a feature. No scaling, feature selection or dimensionality reduction is performed. If added later, fit it on training data only, and repeat preprocessing within each training fold for cross-validation. Validation/test descriptive statistics are reporting artifacts and must not guide fitted transforms or tuning on the test set.
-
-## Target and class imbalance
-
-The target is the supplied `SepsisLabel`, unchanged at each hour. The official challenge labels are already shifted six hours before the defined onset; **do not shift them again**. Current-hour measurements are therefore allowed under the original challenge protocol. A different forecasting horizon or landmarking scheme requires an explicit, separately validated target design. See the [official dataset documentation](https://physionet.org/content/challenge-2019/1.0.0/).
-
-All valid positive and negative samples are retained. Reports show positive/negative rows and patients overall and by split. There is no oversampling, undersampling or balancing of held-out data. Any training-time balancing or class weighting belongs inside the training workflow. A random patient holdout tests within-dataset generalization, not prospective or independent-hospital performance.
-
-## Outputs
-
-```text
-src/
-  common.py                 configuration, discovery, strict patient reader
-  inspect_dataset.py        representative inspection
-  preprocess.py             orchestration, transformation, validation
-  feature_engineering.py    patient-local historical features
-  split_dataset.py          reproducible stratified patient splits
-  dataset_statistics.py     disk-backed statistics and train-only fitting
-  storage.py                Parquet / gzip CSV, bounded reads and writes
-processed_data/
-  raw_processed/chunk_*.parquet  (or chunk_*.csv.gz)
-  train.parquet                 (or train.csv.gz)
-  validation.parquet            (or validation.csv.gz)
-  test.parquet                  (or test.csv.gz)
-  train_patient_ids.csv
-  validation_patient_ids.csv
-  test_patient_ids.csv
-  patient_manifest.csv
-  config_resolved.json
-  schema.json
-  feature_metadata.json
-  imputation_parameters.json
-  pipeline_manifest.json
-reports/
-  inspection.json / inspection.txt
-  processing_log.csv
-  output_processing_log.csv
-  failed_files.csv
-  raw_patient_manifest.csv / patient_manifest.csv
-  missingness.csv
-  numerical_statistics.csv
-  dataset_statistics.json / dataset_statistics.txt
-  split_report.json
-  validation_report.json
-  pipeline.log
-```
-
-The source SHA-256 manifest, resolved configuration, package versions and fixed seed support reproducibility. `requirements-lock.txt` records the versions used locally. Filesystem order is sorted before splitting. Run tests with the same package versions for exact numerical repeatability. Gzip writer timestamps are fixed; portable reproducibility is defined by patient assignments and numeric contents rather than archive/library implementation details.
-
-Exact row duplicates are detected within patient using all raw columns including `ICULOS`. Identical measurements at different hours are valid repeated observations and are preserved. Identical rows across different IDs do not establish patient identity; the source filenames do not permit detecting the same real person under multiple IDs. Plausible but erroneous extreme values are reported, not silently clipped using undocumented clinical cutoffs. Nonconsecutive hours are rejected during ingestion rather than reordered or silently reindexed.
+- [Data pipeline and feature engineering](docs/DATA_PIPELINE.md)
+- [Dashboard demonstration](docs/DASHBOARD.md)
+- [Model training and evaluation](docs/MODEL_TRAINING.md)
+- [Patient-level early detection](docs/EARLY_DETECTION.md)
+- [SHAP explainability](docs/SHAP_EXPLAINABILITY.md)
+- [Timing-feature experiments](docs/ABLATION_EXPERIMENTS.md)

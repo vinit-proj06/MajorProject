@@ -169,7 +169,7 @@ class ModelTrainingTests(unittest.TestCase):
 
     def test_random_forest_training_reload_and_frozen_threshold(self):
         import joblib
-        from train_random_forest import fit_random_forest, predict_random_forest, save_random_forest
+        from scripts.train_random_forest import fit_random_forest, predict_random_forest, save_random_forest
         result, model = self._verify_run(
             "random_forest", fit_random_forest, predict_random_forest,
             save_random_forest, joblib.load)
@@ -179,7 +179,7 @@ class ModelTrainingTests(unittest.TestCase):
 
     def test_xgboost_external_memory_reload_and_frozen_threshold(self):
         import xgboost as xgb
-        from train_xgboost import fit_xgboost, predict_xgboost, save_xgboost
+        from scripts.train_xgboost import fit_xgboost, predict_xgboost, save_xgboost
 
         def load_booster(path):
             model = xgb.Booster()

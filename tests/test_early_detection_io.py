@@ -6,7 +6,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from evaluate_early_detection import COLUMNS, iter_prediction_patients, plot_comparison
+from scripts.evaluate_early_detection import COLUMNS, iter_prediction_patients, plot_comparison
 from src.early_detection import DEFAULT_POLICY, evaluate_patient, summarize_patients
 
 

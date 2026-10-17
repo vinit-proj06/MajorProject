@@ -7,7 +7,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from explain_xgboost import verify_saved_batch, write_ranking
+from scripts.explain_xgboost import verify_saved_batch, write_ranking
 
 
 class ShapRunnerTests(unittest.TestCase):

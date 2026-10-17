@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 
-from explain_xgboost import file_hash, verify_saved_batch, write_ranking
+from scripts.explain_xgboost import file_hash, verify_saved_batch, write_ranking
 from src.common import save_json
 from src.model_data import ARRAYS, close_arrays, open_split
 from src.shap_explain import (

@@ -1,7 +1,7 @@
 {
   "input_dirs": {
-    "A": "C:/Users/LENOVO/Desktop/MajorProject/archive/training_setA",
-    "B": "C:/Users/LENOVO/Desktop/MajorProject/archive/training_setB"
+    "A": "archive/training_setA",
+    "B": "archive/training_setB"
   },
   "output_dir": "processed_data",
   "reports_dir": "reports",

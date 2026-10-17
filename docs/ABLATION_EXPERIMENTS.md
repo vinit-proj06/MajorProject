@@ -1,5 +1,7 @@
 # XGBoost timing-feature ablation experiments
 
+Run commands from the project root. File paths below are relative to that folder.
+
 These experiments test how the existing XGBoost model depends on `ICULOS` and `HospAdmTime`. Each variant is retrained using the original training patients and training settings, with only its specified predictor columns removed. The original baseline in `models/xgboost/` and its reports in `reports/models/xgboost/` are preserved and reused for comparison.
 
 This is an **exploratory comparison**: inspection of the existing test data and SHAP results motivated the hypothesis. Test rows are not used for fitting, early stopping, or threshold selection, but the reused test cohort is no longer an untouched confirmatory evaluation. A future untouched patient cohort, preferably from another hospital or period, is needed to confirm any finding.
@@ -17,7 +19,7 @@ The hospital-admission missingness indicator is removed with `HospAdmTime` in B 
 
 All other retained feature values, feature order, row order, target labels, and patient split assignments stay unchanged. There is no new imputation, normalization, feature engineering, row sampling, or resplitting. The original hourly `ICULOS` remains available as **metadata** in prediction files and for temporal evaluation, including for A and C. Its previous use as the time coordinate in causal rolling features is unchanged.
 
-`src/feature_ablation.py` reuses `fit_xgboost`, `predict_xgboost`, and `save_xgboost` from `train_xgboost.py`. Its `ColumnSubset` adapter selects columns only after taking a bounded row slice of the existing read-only cache. It does not create a complete in-memory matrix for an experiment.
+`src/feature_ablation.py` reuses `fit_xgboost`, `predict_xgboost`, and `save_xgboost` from `scripts/train_xgboost.py`. Its `ColumnSubset` adapter selects columns only after taking a bounded row slice of the existing read-only cache. It does not create a complete in-memory matrix for an experiment.
 
 ## Run and resume
 
@@ -26,19 +28,19 @@ Use the existing project environment and the original configuration files. The m
 From Windows PowerShell:
 
 ```powershell
-cd "C:\Users\LENOVO\Documents\ChatGPT\Major Project"
+cd "C:\Users\LENOVO\Desktop\MajorProjectCopy"
 ```
 
 For the first run, when the timing-ablation output directories do not exist:
 
 ```powershell
-.\.venv\Scripts\python.exe run_timing_ablation.py
+.\.venv\Scripts\python.exe scripts/run_timing_ablation.py
 ```
 
 For existing runs:
 
 ```powershell
-.\.venv\Scripts\python.exe run_timing_ablation.py --resume
+.\.venv\Scripts\python.exe scripts/run_timing_ablation.py --resume
 ```
 
 `--resume` verifies and reuses completed experiments instead of retraining or overwriting their models. It checks the original settings, evaluation policy, protected source hashes, and saved experiment artifacts, then refreshes comparisons. A partially trained experiment is not a completed checkpoint: existing incomplete model/report directories cause an explicit error rather than being overwritten. The command does not resume from an interrupted boosting iteration. Do not start a second process while a run is active.

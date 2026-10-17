@@ -19,7 +19,7 @@ from src.common import save_json
 from src.model_data import close_arrays, open_split
 from src.model_evaluation import choose_threshold, write_evaluation
 from src.model_training import predict_in_batches, save_predictions, training_weight, versions
-from train_xgboost import fit_xgboost, predict_xgboost, save_xgboost
+from scripts.train_xgboost import fit_xgboost, predict_xgboost, save_xgboost
 
 
 EXCLUSIONS = {

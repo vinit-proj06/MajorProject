@@ -1,5 +1,7 @@
 # Patient-level early detection
 
+Run commands from the project root. File paths below are relative to that folder.
+
 This evaluation answers: **Among sepsis patients with recoverable onset timing, how many had a model warning 6–12 hours before the inferred onset?** It uses the existing validation and test predictions from both trained models. It does not train models, change their thresholds, or alter hourly labels.
 
 ## Run and view results
@@ -7,8 +9,8 @@ This evaluation answers: **Among sepsis patients with recoverable onset timing, 
 In your IDE's PowerShell terminal:
 
 ```powershell
-cd "C:\Users\LENOVO\Documents\ChatGPT\Major Project"
-.\.venv\Scripts\python.exe evaluate_early_detection.py
+cd "C:\Users\LENOVO\Desktop\MajorProjectCopy"
+.\.venv\Scripts\python.exe scripts/evaluate_early_detection.py
 ```
 
 The command displays the results and saves:

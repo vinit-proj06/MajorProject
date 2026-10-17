@@ -1,12 +1,14 @@
 # Full-test XGBoost SHAP explanations
 
+Run commands from the project root. File paths below are relative to that folder.
+
 This analysis loads the existing `models/xgboost/xgboost.ubj` model and explains every hourly test record using all 187 saved predictors in their original order. It never retrains or saves over the model, selects a feature cutoff, or changes the decision threshold.
 
 ## Run in your IDE
 
 ```powershell
-cd "C:\Users\LENOVO\Documents\ChatGPT\Major Project"
-.\.venv\Scripts\python.exe explain_xgboost.py
+cd "C:\Users\LENOVO\Desktop\MajorProjectCopy"
+.\.venv\Scripts\python.exe scripts/explain_xgboost.py
 ```
 
 The existing model dependencies are sufficient. XGBoost already implements exact TreeSHAP through `predict(pred_contribs=True, approx_contribs=False)`, so an additional `shap` package is not required. The explanation uses the same saved early-stopping tree range as the original predictions. See the [official XGBoost API](https://xgboost.readthedocs.io/en/stable/python/python_api.html#xgboost.Booster.predict).

@@ -9,10 +9,13 @@ from pathlib import Path
 import sys
 import time
 
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import numpy as np
 import pandas as pd
 
-from evaluate_early_detection import iter_prediction_patients, load_evaluation_config, write_csv
+from scripts.evaluate_early_detection import iter_prediction_patients, load_evaluation_config, write_csv
 from src.common import PROJECT_ROOT, save_json
 from src.early_detection import evaluate_patient, summarize_patients
 from src.feature_ablation import EXCLUSIONS, run_ablation_training
@@ -74,7 +77,7 @@ def preflight(config, early_config):
     protected += [Path(config["cache_dir"]) / "cache_manifest.json"]
     protected += list(Path(config["processed_dir"]).glob("*_patient_ids.csv"))
     protected += [PROJECT_ROOT / name for name in (
-        "model_config.json", "early_detection_config.json", "train_xgboost.py",
+        "model_config.json", "early_detection_config.json", "scripts/train_xgboost.py",
         "src/model_training.py", "src/model_data.py", "src/model_evaluation.py",
         "src/early_detection.py", "src/feature_engineering.py")]
     logging.info("Hashing protected model, split IDs and disk arrays before the experiment")

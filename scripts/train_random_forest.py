@@ -2,7 +2,12 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
+import sys
 import time
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import joblib
 from sklearn.ensemble import RandomForestClassifier

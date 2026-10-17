@@ -191,7 +191,7 @@ def _plot_evaluation(labels, scores, result, path, title):
         matplotlib.use("Agg")
         from matplotlib import pyplot as plt
     except ImportError as exc:
-        raise RuntimeError("Evaluation plots require matplotlib; install requirements-models.txt") from exc
+        raise RuntimeError("Evaluation plots require matplotlib; install requirements.txt") from exc
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle(title, fontsize=15)
     matrix = np.asarray(result["confusion_matrix"])

@@ -5,6 +5,10 @@ import argparse
 import csv
 import json
 from pathlib import Path
+import sys
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.common import save_json
 from src.model_training import load_model_config
@@ -22,7 +26,7 @@ def compare(config):
     for name in ("xgboost", "random_forest"):
         path = directory / name / "results.json"
         if not path.exists():
-            raise FileNotFoundError(f"Run train_{name}.py first; missing {path}")
+            raise FileNotFoundError(f"Run scripts/train_{name}.py first; missing {path}")
         result = json.loads(path.read_text(encoding="utf-8"))
         if result.get("status") != "complete":
             raise ValueError(f"{name} run is incomplete")
